@@ -1,5 +1,5 @@
 # jedis
-Redis cluster client with reading and writing separation / retry policy
+Redis cluster client with reading and writing separation.
 
 Jedis在Redis cluster发生master故障时，不会自动尝试slave；cluster中的slave只能作为备份，无法实现读写分离；因此导致故障时服务不可用、从节点的资源浪费等问题。
 
