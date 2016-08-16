@@ -127,6 +127,8 @@ public abstract class JedisClusterCommand<T> {
                             try {
                                 return execute(connection);
                             } catch (JedisConnectionException connectionException) {
+                                // ignore connectionException and try the next one
+                            } finally {
                                 releaseConnection(connection);
                                 connection = null;
                             }
