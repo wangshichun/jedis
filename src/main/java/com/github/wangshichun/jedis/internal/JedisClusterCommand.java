@@ -7,6 +7,7 @@ import redis.clients.util.JedisClusterCRC16;
 import redis.clients.util.SafeEncoder;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Created by wangshichun on 2016/8/8.
@@ -123,11 +124,17 @@ public abstract class JedisClusterCommand<T> {
                             throw new JedisClusterException(String.format("No connection available for slot: %s, key: %s", slot, new String(key)));
                         }
                         for (int i = 0; i < poolList.size(); i++) {
-                            connection = poolList.get(i).getResource();
                             try {
+                                connection = poolList.get(i).getResource();
                                 return execute(connection);
                             } catch (JedisConnectionException connectionException) {
                                 // ignore connectionException and try the next one
+                            } catch (JedisException exception) {
+                                if (exception != null && exception.getCause() instanceof NoSuchElementException) {
+                                    // ignore NoSuchElementException(invoke getResource when jedisPool exhausted/timeout/unable to activate or validate) and try the next one
+                                } else {
+                                    throw exception;
+                                }
                             } finally {
                                 releaseConnection(connection);
                                 connection = null;

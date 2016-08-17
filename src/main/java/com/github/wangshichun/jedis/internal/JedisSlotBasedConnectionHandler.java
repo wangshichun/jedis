@@ -17,13 +17,13 @@ public class JedisSlotBasedConnectionHandler {
 
     public JedisSlotBasedConnectionHandler(Set<HostAndPort> nodes,
                                            final GenericObjectPoolConfig poolConfig, int timeout) {
-        this(nodes, poolConfig, timeout, timeout);
+        this(nodes, poolConfig, timeout, timeout, null);
     }
 
     public JedisSlotBasedConnectionHandler(Set<HostAndPort> nodes,
-                                           final GenericObjectPoolConfig poolConfig, int connectionTimeout, int soTimeout) {
-        this.cache = new JedisClusterInfoCache(poolConfig, connectionTimeout, soTimeout);
-        initializeSlotsCache(nodes, poolConfig);
+                                           final GenericObjectPoolConfig poolConfig, int connectionTimeout, int soTimeout, String password) {
+        this.cache = new JedisClusterInfoCache(poolConfig, connectionTimeout, soTimeout, password);
+        initializeSlotsCache(nodes, poolConfig, password);
     }
 
     private ReadPreference readPreference;
@@ -107,6 +107,8 @@ public class JedisSlotBasedConnectionHandler {
 
     public List<JedisPoolWrapper> getSlavePoolFromSlot(int slot) {
         List<JedisPoolWrapper> connectionPoolList = cache.getSlotPoolSlave(slot);
+        if (connectionPoolList == null)
+            return new LinkedList<JedisPoolWrapper>();
         return Collections.unmodifiableList(connectionPoolList);
     }
 
@@ -119,10 +121,12 @@ public class JedisSlotBasedConnectionHandler {
         return cache.getNodes();
     }
 
-    private void initializeSlotsCache(Set<HostAndPort> startNodes, GenericObjectPoolConfig poolConfig) {
+    private void initializeSlotsCache(Set<HostAndPort> startNodes, GenericObjectPoolConfig poolConfig, String password) {
         for (HostAndPort hostAndPort : startNodes) {
             Jedis jedis = new Jedis(hostAndPort.getHost(), hostAndPort.getPort());
             try {
+                if (password != null)
+                    jedis.auth(password);
                 cache.discoverClusterNodesAndSlots(jedis);
                 break;
             } catch (JedisConnectionException e) {

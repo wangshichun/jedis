@@ -1,5 +1,6 @@
 package com.github.wangshichun.jedis;
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,13 +8,16 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import redis.clients.jedis.HostAndPort;
 
+import java.util.Collections;
+
 /**
  * Created by wangshichun on 2016/8/9.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JedisClusterTest {
     @Spy
-    private JedisCluster jedisCluster = new JedisCluster(new HostAndPort("10.255.209.47", 30001));
+    private JedisCluster jedisCluster = new JedisCluster(Collections.singleton(new HostAndPort("10.255.209.47", 30001)),
+            2000, 2000, 5, new GenericObjectPoolConfig(), "111");
 
     @Test
     public void test() {

@@ -46,9 +46,9 @@ public class BinaryJedisCluster implements BasicCommands, BinaryJedisClusterComm
     }
 
     public BinaryJedisCluster(Set<HostAndPort> jedisClusterNode, int connectionTimeout,
-                              int soTimeout, int maxRedirections, final GenericObjectPoolConfig poolConfig) {
+                              int soTimeout, int maxRedirections, final GenericObjectPoolConfig poolConfig, String password) {
         this.connectionHandler = new JedisSlotBasedConnectionHandler(jedisClusterNode, poolConfig,
-                connectionTimeout, soTimeout);
+                connectionTimeout, soTimeout, password);
         this.maxRedirections = maxRedirections;
     }
 

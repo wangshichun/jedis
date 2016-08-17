@@ -50,7 +50,7 @@ public class JedisCluster extends BinaryJedisCluster implements JedisCommands,
 
     public JedisCluster(HostAndPort node, int connectionTimeout, int soTimeout,
                         int maxRedirections, final GenericObjectPoolConfig poolConfig) {
-        super(Collections.singleton(node), connectionTimeout, soTimeout, maxRedirections, poolConfig);
+        super(Collections.singleton(node), connectionTimeout, soTimeout, maxRedirections, poolConfig, null);
     }
 
     public JedisCluster(Set<HostAndPort> nodes) {
@@ -80,7 +80,12 @@ public class JedisCluster extends BinaryJedisCluster implements JedisCommands,
 
     public JedisCluster(Set<HostAndPort> jedisClusterNode, int connectionTimeout, int soTimeout,
                         int maxRedirections, final GenericObjectPoolConfig poolConfig) {
-        super(jedisClusterNode, connectionTimeout, soTimeout, maxRedirections, poolConfig);
+        super(jedisClusterNode, connectionTimeout, soTimeout, maxRedirections, poolConfig, null);
+    }
+
+    public JedisCluster(Set<HostAndPort> jedisClusterNode, int connectionTimeout, int soTimeout,
+                        int maxRedirections, final GenericObjectPoolConfig poolConfig, String password) {
+        super(jedisClusterNode, connectionTimeout, soTimeout, maxRedirections, poolConfig, password);
     }
 
     public void setReadPreference(ReadPreference readPreference) {
