@@ -96,10 +96,11 @@ public class JedisClusterInfoCache {
                 }
 
                 HostAndPort targetNode = generateHostAndPort(hostInfos);
-                setNodeIfNotExist(targetNode, nodes);
                 if (i == MASTER_NODE_INDEX) {
+                    setNodeIfNotExist(targetNode, nodes, false);
                     assignSlotsToNode(slotNums, targetNode, nodes, slotsMaster);
                 } else {
+                    setNodeIfNotExist(targetNode, nodes, true);
                     assignSlotsToNodeSlave(slotNums, targetNode, nodes, slotsSlave);
                 }
             }
@@ -112,6 +113,10 @@ public class JedisClusterInfoCache {
     }
 
     public void setNodeIfNotExist(HostAndPort node, Map<String, JedisPool> nodes) {
+        setNodeIfNotExist(node, nodes, false);
+    }
+
+    private void setNodeIfNotExist(HostAndPort node, Map<String, JedisPool> nodes, boolean isSlave) {
         w.lock();
         try {
             String nodeKey = getNodeKey(node);
@@ -119,8 +124,9 @@ public class JedisClusterInfoCache {
                 nodes = this.nodes;
             if (nodes.containsKey(nodeKey)) return;
 
-            JedisPool nodePool = new JedisPool(poolConfig, node.getHost(), node.getPort(),
-                    connectionTimeout, soTimeout, this.password, 0, null);
+            JedisPool nodePool = isSlave
+                    ? new SlaveJedisPool(poolConfig, node.getHost(), node.getPort(), connectionTimeout, soTimeout, this.password, 0, null)
+                    : new JedisPool(poolConfig, node.getHost(), node.getPort(), connectionTimeout, soTimeout, this.password, 0, null);
             nodes.put(nodeKey, nodePool);
         } finally {
             w.unlock();
@@ -151,7 +157,7 @@ public class JedisClusterInfoCache {
             JedisPool targetPool = nodes.get(getNodeKey(targetNode));
 
             if (targetPool == null) {
-                setNodeIfNotExist(targetNode, nodes);
+                setNodeIfNotExist(targetNode, nodes, true);
                 targetPool = nodes.get(getNodeKey(targetNode));
             }
 
