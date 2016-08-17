@@ -6,17 +6,21 @@ Jedis在Redis cluster发生master故障时，不会自动尝试slave；cluster�
 
 com.github.wangshichun.jedis.JedisCluster是从原来的jedis中的JedisCluster复制过来的，在原jedis的基础上少量修改，增加的功能：
 
-1、读写分离。
+1、读写分离/故障重试。
 <pre>
     调用JedisCluster中的setReadPreference方法，可设置多种策略。ReadPreference抽象类中定义的策略：
         MASTER_ONLY（默认），读操作连接master失败时不会自动重试slave。
         ONE_SLAVE_ONLY，读操作连接slave中的一个（默认随机选择slave，可通过调用JedisCluster中的
             setSlaveSelect方法实现自定义选择slave的策略）
-        MASTER_THEN_ONE_SLAVE，先读master，连接失败选择一个slave
+        MASTER_THEN_ONE_SLAVE，先读master，连接失败选择一个slave，可以解决master故障时读失败的问题
         MASTER_THEN_ALL_SLAVE，先读master，连接失败依次尝试所有slave
         ONE_SLAVE_THEN_MASTER，先读slave，连接失败选择master
         ALL_SLAVE_THEN_MASTER，依次尝试所有slave，连接都失败才会连接master
         可以继承ReadPreference抽象类，以根据slave列表、slot、key参数实现自己的策略。
+        
+        如果某一个master分片故障，则redis cluster需要NODE_TIMEOUT * N秒才能选举该分片的新master；
+        在此期间对应slot的读写操作均不可用；
+        如果使用先master后slave的策略，则可以在连接master失败时自动尝试slave，避免读操作不可用。
 </pre>
 
 2、自定义slave选择策略，实现读本机房或近距离读。
