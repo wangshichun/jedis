@@ -30,3 +30,4 @@ com.github.wangshichun.jedis.JedisCluster是从原来的jedis中的JedisCluster�
         可用的slave。返回的列表中，前面的连接会优先尝试。
 </pre>
 
+3、密码auth自动登录
